@@ -104,24 +104,27 @@
     </None>
     <None Include="..\asm-dude-vsix\Resources\Performance\Broadwell.tsv">
       <Link>Resources\Performance\Broadwell.tsv</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="..\asm-dude-vsix\Resources\Performance\Haswell.tsv">
       <Link>Resources\Performance\Haswell.tsv</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="..\asm-dude-vsix\Resources\Performance\Instructions-Translations.tsv">
       <Link>Resources\Performance\Instructions-Translations.tsv</Link>
-    </None>
-    <None Include="..\asm-dude-vsix\Resources\Performance\instruction_tables.ods">
-      <Link>Resources\Performance\instruction_tables.ods</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="..\asm-dude-vsix\Resources\Performance\IvyBridge.tsv">
       <Link>Resources\Performance\IvyBridge.tsv</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="..\asm-dude-vsix\Resources\Performance\Skylake.tsv">
       <Link>Resources\Performance\Skylake.tsv</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="..\asm-dude-vsix\Resources\Performance\SkylakeX.tsv">
       <Link>Resources\Performance\SkylakeX.tsv</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="..\asm-dude-vsix\Settings.settings">
       <Link>Settings.settings</Link>
@@ -475,21 +478,27 @@
     <Content Include="..\asm-dude-vsix\LICENSE.txt">
       <Link>LICENSE.txt</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="..\asm-dude-vsix\Microsoft.Z3.dll">
       <Link>Microsoft.Z3.dll</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\asm-dude-vsix\Resources\AsmDudeData.xml">
       <Link>Resources\AsmDudeData.xml</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\asm-dude-vsix\Resources\signature-dec2018.txt">
       <Link>Resources\signature-dec2018.txt</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\asm-dude-vsix\Resources\signature-hand-1.txt">
       <Link>Resources\signature-hand-1.txt</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\asm-dude-vsix\Resources\signature-may2019.txt">
       <Link>Resources\signature-may2019.txt</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
