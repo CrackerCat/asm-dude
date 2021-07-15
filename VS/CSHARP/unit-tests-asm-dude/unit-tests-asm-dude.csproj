@@ -88,6 +88,9 @@
     <PackageReference Include="Microsoft.Composition.Analyzers">
       <Version>1.2.0-beta2</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Interop">
+      <Version>17.0.0-previews-1-31410-258</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers">
       <Version>17.0.17-alpha</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -105,7 +108,7 @@
       <Version>1.2.0-beta2</Version>
     </PackageReference>
     <PackageReference Include="System.ComponentModel.Composition">
-      <Version>4.7.0</Version>
+      <Version>6.0.0-preview.6.21352.12</Version>
     </PackageReference>
     <PackageReference Include="System.Runtime">
       <Version>4.3.1</Version>

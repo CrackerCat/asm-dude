@@ -242,12 +242,6 @@
     <Compile Include="..\asm-dude-vsix\Settings.Designer.cs">
       <Link>Settings.Designer.cs</Link>
     </Compile>
-    <Compile Include="..\asm-dude-vsix\Settings1.Designer.cs">
-      <Link>Settings1.Designer.cs</Link>
-      <AutoGen>True</AutoGen>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
     <Compile Include="..\asm-dude-vsix\SignatureHelp\AsmParameter.cs">
       <Link>SignatureHelp\AsmParameter.cs</Link>
     </Compile>
@@ -480,6 +474,7 @@
     </Content>
     <Content Include="..\asm-dude-vsix\LICENSE.txt">
       <Link>LICENSE.txt</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\asm-dude-vsix\Microsoft.Z3.dll">
       <Link>Microsoft.Z3.dll</Link>
