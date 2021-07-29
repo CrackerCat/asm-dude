@@ -687,7 +687,7 @@ namespace AsmDude.Squiggles
                                     int lineNumber = LabelGraph.Get_Linenumber(key);
                                     //TODO retrieve the lineContent of the correct buffer!
                                     string lineContent = this.sourceBuffer_.CurrentSnapshot.GetLineFromLineNumber(lineNumber).GetText();
-
+                                    
                                     ErrorTask errorTask = new ErrorTask()
                                     {
                                         SubcategoryIndex = (int)AsmMessageEnum.LABEL_CLASH,
@@ -698,7 +698,7 @@ namespace AsmDude.Squiggles
                                         Document = this.labelGraph_.Get_Filename(key),
                                     };
                                     errorTask.Navigate += AsmDudeToolsStatic.Error_Task_Navigate_Handler;
-                                    errorTasks.Add(errorTask);
+                                    //errorTasks.Add(errorTask);
                                     errorListNeedsRefresh = true;
                                 }
                             }
@@ -721,7 +721,7 @@ namespace AsmDude.Squiggles
                                         Document = this.labelGraph_.Get_Filename(key),
                                     };
                                     errorTask.Navigate += AsmDudeToolsStatic.Error_Task_Navigate_Handler;
-                                    errorTasks.Add(errorTask);
+                                    //errorTasks.Add(errorTask);
                                     errorListNeedsRefresh = true;
                                 }
                             }
@@ -744,13 +744,13 @@ namespace AsmDude.Squiggles
                                         Document = entry.source_Filename,
                                     };
                                     errorTask.Navigate += AsmDudeToolsStatic.Error_Task_Navigate_Handler;
-                                    errorTasks.Add(errorTask);
+                                    //errorTasks.Add(errorTask);
                                     errorListNeedsRefresh = true;
                                 }
                             }
                             if (errorListNeedsRefresh)
                             {
-                                this.errorListProvider_.Refresh();
+                                //this.errorListProvider_.Refresh();
                                 //this._errorListProvider.Show(); // do not use BringToFront since that will select the error window.
                             }
                         }
