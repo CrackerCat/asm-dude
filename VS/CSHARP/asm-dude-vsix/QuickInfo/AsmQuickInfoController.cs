@@ -39,8 +39,8 @@ namespace AsmDude.QuickInfo
     internal sealed class AsmQuickInfoController : IIntellisenseController
     {
         private readonly IList<ITextBuffer> subjectBuffers_;
-        private readonly IQuickInfoBroker quickInfoBroker_; //XYZZY OLD
-        //private readonly IAsyncQuickInfoBroker quickInfoBroker_; //XYZZY NEW
+        //private readonly IQuickInfoBroker quickInfoBroker_; //XYZZY OLD
+        private readonly IAsyncQuickInfoBroker quickInfoBroker_; //XYZZY NEW
         private readonly ITagAggregator<AsmTokenTag> aggregator_;
         private ITextView textView_;
 
@@ -50,7 +50,8 @@ namespace AsmDude.QuickInfo
         internal AsmQuickInfoController(
             ITextView textView,
             IList<ITextBuffer> subjectBuffers,
-            IQuickInfoBroker quickInfoBroker,
+            //IQuickInfoBroker quickInfoBroker, //XYZZY OLD
+            IAsyncQuickInfoBroker quickInfoBroker, //XYZZY NEW
             IBufferTagAggregatorFactoryService aggregatorFactory)
         {
             AsmDudeToolsStatic.Output_INFO(string.Format(AsmDudeToolsStatic.CultureUI, "{0}:constructor; file={1}", this.ToString(), AsmDudeToolsStatic.GetFilename(textView.TextBuffer)));

@@ -652,8 +652,10 @@ namespace AsmDude.Tools
             try
             {
                 string fullPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                string filenameDll = "AsmDude.dll";
-                return fullPath.Substring(0, fullPath.Length - filenameDll.Length);
+                string filenameDll = "AsmDude-vs2022.dll";
+                string result = fullPath.Substring(0, fullPath.Length - filenameDll.Length);
+                Output_INFO("install path " + result);
+                return result;
             }
             catch (Exception)
             {

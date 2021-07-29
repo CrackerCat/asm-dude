@@ -27,6 +27,8 @@ namespace AsmDude.QuickInfo
     using System.IO;
     using System.Reflection;
     using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Documents;
@@ -41,8 +43,8 @@ namespace AsmDude.QuickInfo
     /// <summary>
     /// Provides QuickInfo information to be displayed in a text buffer
     /// </summary>
-     //internal sealed class QuickInfoSource : IAsyncQuickInfoSource //XYZZY NEW
-    internal sealed class AsmQuickInfoSource : IQuickInfoSource //XYZZY OLD
+    internal sealed class AsmQuickInfoSource : IAsyncQuickInfoSource //XYZZY NEW
+    //internal sealed class AsmQuickInfoSource : IQuickInfoSource //XYZZY OLD
     {
         private readonly ITextBuffer textBuffer_;
         private readonly ITagAggregator<AsmTokenTag> aggregator_;
@@ -64,9 +66,14 @@ namespace AsmDude.QuickInfo
             this.asmSimulator_ = asmSimulator ?? throw new ArgumentNullException(nameof(asmSimulator));
             this.asmDudeTools_ = AsmDudeTools.Instance;
         }
+        public Task<QuickInfoItem> GetQuickInfoItemAsync(IAsyncQuickInfoSession session, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>Determine which pieces of Quickinfo content should be displayed</summary>
-        public void AugmentQuickInfoSession(IQuickInfoSession session, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan) //XYZZY OLD
+        //public void AugmentQuickInfoSession(IQuickInfoSession session, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan) //XYZZY OLD
+        public void AugmentQuickInfoSession(IAsyncQuickInfoSession session, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan) //XYZZY NEW
         {
             applicableToSpan = null;
             try
@@ -87,21 +94,10 @@ namespace AsmDude.QuickInfo
             }
         }
 
-        public void AugmentQuickInfoSession_BUG(IQuickInfoSession session, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan) //XYZZY OLD
-        {
-            applicableToSpan = null;
-            SnapshotPoint? triggerPoint = session.GetTriggerPoint(this.textBuffer_.CurrentSnapshot);
-            if (triggerPoint != null)
-            {
-                ITextSnapshotLine line = triggerPoint.Value.GetContainingLine();
-                applicableToSpan = this.textBuffer_.CurrentSnapshot.CreateTrackingSpan(line.Extent, SpanTrackingMode.EdgeInclusive);
-                quickInfoContent.Add(new InstructionTooltipWindow(AsmDudeToolsStatic.GetFontColor()));
-            }
-        }
-
         #region Private Methods
 
-        private void Handle(IQuickInfoSession session, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
+        //private void Handle(IQuickInfoSession session, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan) //XYZZY OLD
+        private void Handle(IAsyncQuickInfoSession session, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan) //XYZZY NEW
         {
             applicableToSpan = null;
             DateTime time1 = DateTime.Now;

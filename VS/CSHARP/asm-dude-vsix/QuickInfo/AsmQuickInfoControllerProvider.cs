@@ -41,7 +41,8 @@ namespace AsmDude.QuickInfo
         private readonly IBufferTagAggregatorFactoryService aggregatorFactory_ = null;
 
         [Import]
-        private readonly IQuickInfoBroker quickInfoBroker_ = null;
+        //private readonly IQuickInfoBroker quickInfoBroker_ = null; //XYZZY OLD
+        private readonly IAsyncQuickInfoBroker quickInfoBroker_ = null; //XYZZY NEW
 
         public IIntellisenseController TryCreateIntellisenseController(ITextView textView, IList<ITextBuffer> subjectBuffers)
         {

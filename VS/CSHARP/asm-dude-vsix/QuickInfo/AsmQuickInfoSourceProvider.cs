@@ -30,14 +30,14 @@ namespace AsmDude.QuickInfo
     using Microsoft.VisualStudio.Text.Tagging;
     using Microsoft.VisualStudio.Utilities;
 
-    //[Export(typeof(IAsyncQuickInfoSourceProvider))] //XYZZY NEW
-    [Export(typeof(IQuickInfoSourceProvider))] //XYZZY OLD
+    [Export(typeof(IAsyncQuickInfoSourceProvider))] //XYZZY NEW
+    //[Export(typeof(IQuickInfoSourceProvider))] //XYZZY OLD
     [ContentType(AsmDudePackage.AsmDudeContentType)]
     [TextViewRole(PredefinedTextViewRoles.Debuggable)]
     [Name("AsmQuickInfoSourceProvider")]
     [Order]
-    //internal sealed class QuickInfoSourceProvider : IAsyncQuickInfoSourceProvider //XYZZY NEW
-    internal sealed class AsmQuickInfoSourceProvider : IQuickInfoSourceProvider //XYZZY OLD
+    internal sealed class QuickInfoSourceProvider : IAsyncQuickInfoSourceProvider //XYZZY NEW
+    //internal sealed class AsmQuickInfoSourceProvider : IQuickInfoSourceProvider //XYZZY OLD
     {
         [Import]
         private readonly IBufferTagAggregatorFactoryService aggregatorFactory_ = null;
@@ -48,8 +48,8 @@ namespace AsmDude.QuickInfo
         [Import]
         private readonly IContentTypeRegistryService contentService_ = null;
 
-        //public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer) //XYZZY NEW
-        public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer) //XYZZY OLD
+        public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer) //XYZZY NEW
+        //public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer) //XYZZY OLD
         {
             AsmDudeToolsStatic.Output_INFO(string.Format(AsmDudeToolsStatic.CultureUI, "{0}:TryCreateQuickInfoSource", this.ToString()));
             AsmQuickInfoSource sc()
