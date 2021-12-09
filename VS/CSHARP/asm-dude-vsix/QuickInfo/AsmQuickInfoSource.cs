@@ -24,6 +24,8 @@ namespace AsmDude.QuickInfo
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
+    using System.Diagnostics.Contracts;
     using System.IO;
     using System.Reflection;
     using System.Text;
@@ -36,11 +38,14 @@ namespace AsmDude.QuickInfo
     using AsmDude.SyntaxHighlighting;
     using AsmDude.Tools;
     using AsmTools;
+    using Microsoft.VisualStudio.Core.Imaging;
+    using Microsoft.VisualStudio.Imaging;
     using Microsoft.VisualStudio.Language.Intellisense;
     using Microsoft.VisualStudio.Language.StandardClassification;
     using Microsoft.VisualStudio.Text;
     using Microsoft.VisualStudio.Text.Adornments;
     using Microsoft.VisualStudio.Text.Tagging;
+
 
     /// <summary>
     /// Provides QuickInfo information to be displayed in a text buffer
@@ -53,6 +58,13 @@ namespace AsmDude.QuickInfo
         private readonly LabelGraph labelGraph_;
         private readonly AsmSimulator asmSimulator_;
         private readonly AsmDudeTools asmDudeTools_;
+
+        private static readonly ImageId AssemblyWarningImageId = new ImageId(new Guid("{ae27a6b0-e345-4288-96df-5eaf394ee369}"), 200);
+        private static readonly ImageId Cube_ = KnownMonikers.AbstractCube.ToImageId(); // http://glyphlist.azurewebsites.net/knownmonikers/
+        private static readonly ImageId Branch_ = KnownMonikers.Branch.ToImageId();
+        private static readonly ImageId Binary_ = KnownMonikers.Binary.ToImageId();
+        private static readonly ImageId Type_ = KnownMonikers.Type.ToImageId();
+
 
         public object CSharpEditorResources { get; private set; }
 
@@ -78,7 +90,6 @@ namespace AsmDude.QuickInfo
                 string contentType = this.textBuffer_.ContentType.DisplayName;
                 if (contentType.Equals(AsmDudePackage.AsmDudeContentType, StringComparison.Ordinal))
                 {
-
                     QuickInfoItem qii;
                     if (false)
                     {
@@ -88,7 +99,7 @@ namespace AsmDude.QuickInfo
                         ContainerElement dataElm = new ContainerElement(
                         ContainerElementStyle.Stacked,
                         new ClassifiedTextElement(
-                            new ClassifiedTextRun(PredefinedClassificationTypeNames.Keyword, "MESSAGE TO EDIT: " + text.ToString())
+                            new ClassifiedTextRun(PredefinedClassificationTypeNames.Keyword, "BLA 1: " + text.ToString())
                         ));
                         qii = new QuickInfoItem(lineSpan, dataElm);
                     }
@@ -131,9 +142,54 @@ namespace AsmDude.QuickInfo
 
         #region Private Methods
 
+        public static string GetPerformanceInfo(Mnemonic mnemonic, AsmDudeTools asmDudeTools)
+        {
+            Contract.Requires(asmDudeTools != null);
+            string result = string.Empty;
+
+            if (Settings.Default.PerformanceInfo_On)
+            {
+                bool first = true;
+                string format = "{0,-14}{1,-24}{2,-7}{3,-9}{4,-20}{5,-9}{6,-11}{7,-10}";
+
+                MicroArch selectedMicroarchitures = AsmDudeToolsStatic.Get_MicroArch_Switched_On();
+                foreach (PerformanceItem item in asmDudeTools.Performance_Store.GetPerformance(mnemonic, selectedMicroarchitures))
+                {
+                    if (first)
+                    {
+                        first = false;
+                        result += string.Format(
+                            AsmDudeToolsStatic.CultureUI,
+                            format,
+                            string.Empty, string.Empty, "µOps", "µOps", "µOps", string.Empty, string.Empty, string.Empty);
+
+                        result += string.Format(
+                            AsmDudeToolsStatic.CultureUI,
+                            "\n" + format,
+                            "Architecture", "Instruction", "Fused", "Unfused", "Port", "Latency", "Throughput", string.Empty);
+                    }
+                    result += string.Format(
+                        AsmDudeToolsStatic.CultureUI,
+                        "\n" + format,
+                        item.microArch_ + " ",
+                        item.instr_ + " " + item.args_ + " ",
+                        item.mu_Ops_Fused_ + " ",
+                        item.mu_Ops_Merged_ + " ",
+                        item.mu_Ops_Port_ + " ",
+                        item.latency_ + " ",
+                        item.throughput_ + " ",
+                        item.remark_);
+                }
+            }
+            return result;
+        }
+
+
         private QuickInfoItem HandleNew(IAsyncQuickInfoSession session, SnapshotPoint? triggerPoint) //XYZZY NEW
         {
             DateTime time1 = DateTime.Now;
+
+            QuickInfoItem result = null;
 
             IList<object> quickInfoContent = new List<object>();
             ITrackingSpan applicableToSpan = null;
@@ -156,10 +212,6 @@ namespace AsmDude.QuickInfo
                 {
                     case AsmTokenType.Misc:
                         {
-                            description = new TextBlock();
-                            description.Inlines.Add(Make_Run1("Keyword ", foreground));
-                            description.Inlines.Add(Make_Run2(keyword, new SolidColorBrush(AsmDudeToolsStatic.ConvertColor(Settings.Default.SyntaxHighlighting_Misc))));
-
                             string descr = this.asmDudeTools_.Get_Description(keyword_upcase);
                             if (descr.Length > 0)
                             {
@@ -167,20 +219,24 @@ namespace AsmDude.QuickInfo
                                 {
                                     descr = "\n" + descr;
                                 }
+                                string full_Descr = AsmSourceTools.Linewrap(": " + descr, AsmDudePackage.MaxNumberOfCharsInToolTips);
 
-                                description.Inlines.Add(new Run(AsmSourceTools.Linewrap(": " + descr, AsmDudePackage.MaxNumberOfCharsInToolTips))
-                                {
-                                    Foreground = foreground,
-                                });
+                                result = new QuickInfoItem(
+                                    applicableToSpan,
+                                    new ContainerElement(
+                                        ContainerElementStyle.Stacked,
+                                        new ContainerElement(
+                                            ContainerElementStyle.Wrapped,
+                                            new ImageElement(Type_),
+                                            new ClassifiedTextElement(
+                                                new ClassifiedTextRun(PredefinedClassificationTypeNames.Text, "Keyword "),
+                                                new ClassifiedTextRun(PredefinedClassificationTypeNames.Keyword, keyword),
+                                                new ClassifiedTextRun(PredefinedClassificationTypeNames.Text, full_Descr)))));
                             }
                             break;
                         }
                     case AsmTokenType.Directive:
                         {
-                            description = new TextBlock();
-                            description.Inlines.Add(Make_Run1("Directive ", foreground));
-                            description.Inlines.Add(Make_Run2(keyword, new SolidColorBrush(AsmDudeToolsStatic.ConvertColor(Settings.Default.SyntaxHighlighting_Directive))));
-
                             string descr = this.asmDudeTools_.Get_Description(keyword_upcase);
                             if (descr.Length > 0)
                             {
@@ -188,11 +244,19 @@ namespace AsmDude.QuickInfo
                                 {
                                     descr = "\n" + descr;
                                 }
+                                string full_Descr = AsmSourceTools.Linewrap(": " + descr, AsmDudePackage.MaxNumberOfCharsInToolTips);
 
-                                description.Inlines.Add(new Run(AsmSourceTools.Linewrap(": " + descr, AsmDudePackage.MaxNumberOfCharsInToolTips))
-                                {
-                                    Foreground = foreground,
-                                });
+                                result = new QuickInfoItem(
+                                    applicableToSpan,
+                                    new ContainerElement(
+                                        ContainerElementStyle.Stacked,
+                                        new ContainerElement(
+                                            ContainerElementStyle.Wrapped,
+                                            new ImageElement(Type_),
+                                            new ClassifiedTextElement(
+                                                new ClassifiedTextRun(PredefinedClassificationTypeNames.Text, "Directive "),
+                                                new ClassifiedTextRun(PredefinedClassificationTypeNames.Keyword, keyword),
+                                                new ClassifiedTextRun(PredefinedClassificationTypeNames.Text, full_Descr)))));
                             }
                             break;
                         }
@@ -207,14 +271,27 @@ namespace AsmDude.QuickInfo
                             Rn reg = RegisterTools.ParseRn(keyword_upcase, true);
                             if (this.asmDudeTools_.RegisterSwitchedOn(reg))
                             {
-                                RegisterTooltipWindow registerTooltipWindow = new RegisterTooltipWindow(foreground);
-                                registerTooltipWindow.SetDescription(reg, this.asmDudeTools_);
-                                registerTooltipWindow.SetAsmSim(this.asmSimulator_, reg, lineNumber, true);
-                                quickInfoContent.Add(registerTooltipWindow);
+                                string regStr = reg.ToString();
+                                Arch arch = RegisterTools.GetArch(reg);
+                                string archStr = (arch == Arch.ARCH_NONE) ? string.Empty : " [" + ArchTools.ToString(arch) + "] ";
+                                string descr = this.asmDudeTools_.Get_Description(regStr);
 
-                                // var dataElm = new ClassifiedTextElement(new ClassifiedTextRun(PredefinedClassificationTypeNames.Keyword, "MESSAGE TO EDIT: "));
-                                var z = new ContainerElement(ContainerElementStyle.Stacked, quickInfoContent);
-                                return new QuickInfoItem(applicableToSpan, z);
+                                if (regStr.Length > (AsmDudePackage.MaxNumberOfCharsInToolTips / 2))
+                                {
+                                    descr = "\n" + descr;
+                                }
+                                string full_Descr = AsmSourceTools.Linewrap(":" + archStr + descr, AsmDudePackage.MaxNumberOfCharsInToolTips);
+
+                                result = new QuickInfoItem(
+                                    applicableToSpan,
+                                    new ContainerElement(
+                                        ContainerElementStyle.Stacked,
+                                        new ContainerElement(
+                                            ContainerElementStyle.Wrapped,
+                                            new ImageElement(Binary_),
+                                            new ClassifiedTextElement(
+                                                new ClassifiedTextRun(PredefinedClassificationTypeNames.Keyword, regStr),
+                                                new ClassifiedTextRun(PredefinedClassificationTypeNames.Text, full_Descr)))));
                             }
                             break;
                         }
@@ -223,15 +300,30 @@ namespace AsmDude.QuickInfo
                     case AsmTokenType.Jump:
                         {
                             (Mnemonic mnemonic, _) = AsmSourceTools.ParseMnemonic_Att(keyword_upcase, true);
-                            InstructionTooltipWindow instructionTooltipWindow = new InstructionTooltipWindow(foreground)
+                            string mnemonicStr = mnemonic.ToString();
+                            string archStr = ArchTools.ToString(this.asmDudeTools_.Mnemonic_Store.GetArch(mnemonic)) + " ";
+                            string descr = AsmSourceTools.Linewrap(this.asmDudeTools_.Mnemonic_Store.GetDescription(mnemonic), AsmDudePackage.MaxNumberOfCharsInToolTips);
+
+                            if (mnemonicStr.Length > (AsmDudePackage.MaxNumberOfCharsInToolTips / 2))
                             {
-                                Session = session, // set the owner of this windows such that we can manually close this window
-                            };
-                            instructionTooltipWindow.SetDescription(mnemonic, this.asmDudeTools_);
-                            instructionTooltipWindow.SetPerformanceInfo(mnemonic, this.asmDudeTools_);
-                            int lineNumber = AsmDudeToolsStatic.Get_LineNumber(tagSpan);
-                            instructionTooltipWindow.SetAsmSim(this.asmSimulator_, lineNumber, true);
-                            quickInfoContent.Add(instructionTooltipWindow);
+                                descr = "\n" + descr;
+                            }
+                            string full_Descr = AsmSourceTools.Linewrap(":" + archStr + descr, AsmDudePackage.MaxNumberOfCharsInToolTips);
+
+                            result = new QuickInfoItem(
+                                applicableToSpan,
+                                new ContainerElement(
+                                    ContainerElementStyle.Stacked,
+                                    new ContainerElement(
+                                        ContainerElementStyle.Wrapped,
+                                        new ImageElement(Cube_),
+                                        new ClassifiedTextElement(
+                                            new ClassifiedTextRun(PredefinedClassificationTypeNames.Keyword, mnemonicStr),
+                                            new ClassifiedTextRun(PredefinedClassificationTypeNames.Text, full_Descr))),
+                                    new ContainerElement(
+                                        ContainerElementStyle.Stacked,
+                                        new ClassifiedTextElement(
+                                            new ClassifiedTextRun(PredefinedClassificationTypeNames.Text, "Performance\n " + GetPerformanceInfo(mnemonic, this.asmDudeTools_))))));
                             break;
                         }
                     case AsmTokenType.Label:
@@ -240,8 +332,6 @@ namespace AsmDude.QuickInfo
                             string labelPrefix = tag.Misc;
                             string full_Qualified_Label = AsmDudeToolsStatic.Make_Full_Qualified_Label(labelPrefix, label, AsmDudeToolsStatic.Used_Assembler);
 
-                            description = new TextBlock();
-                            description.Inlines.Add(Make_Run1("Label ", foreground));
                             description.Inlines.Add(Make_Run2(full_Qualified_Label, new SolidColorBrush(AsmDudeToolsStatic.ConvertColor(Settings.Default.SyntaxHighlighting_Label))));
 
                             string descr = this.Get_Label_Description(full_Qualified_Label);
@@ -255,13 +345,21 @@ namespace AsmDude.QuickInfo
                                 {
                                     descr = "\n" + descr;
                                 }
+                                string full_Descr = AsmSourceTools.Linewrap(": " + descr, AsmDudePackage.MaxNumberOfCharsInToolTips);
 
-                                description.Inlines.Add(new Run(AsmSourceTools.Linewrap(": " + descr, AsmDudePackage.MaxNumberOfCharsInToolTips))
-                                {
-                                    Foreground = foreground,
-                                });
+                                result = new QuickInfoItem(
+                                    applicableToSpan,
+                                    new ContainerElement(
+                                        ContainerElementStyle.Stacked,
+                                        new ContainerElement(
+                                            ContainerElementStyle.Wrapped,
+                                            new ImageElement(Cube_),
+                                            new ClassifiedTextElement(
+                                                new ClassifiedTextRun(PredefinedClassificationTypeNames.Text, "Label "),
+                                                new ClassifiedTextRun(PredefinedClassificationTypeNames.Keyword, full_Qualified_Label),
+                                                new ClassifiedTextRun(PredefinedClassificationTypeNames.Text, full_Descr)))));
                             }
-                            return new QuickInfoItem(applicableToSpan, new ClassifiedTextElement(new ClassifiedTextRun(PredefinedClassificationTypeNames.Keyword, descr)));
+                            break;
                         }
                     case AsmTokenType.LabelDef:
                         {
@@ -290,11 +388,19 @@ namespace AsmDude.QuickInfo
                                 {
                                     descr = "\n" + descr;
                                 }
+                                string full_Descr = AsmSourceTools.Linewrap(": " + descr, AsmDudePackage.MaxNumberOfCharsInToolTips);
 
-                                description.Inlines.Add(new Run(AsmSourceTools.Linewrap(": " + descr, AsmDudePackage.MaxNumberOfCharsInToolTips))
-                                {
-                                    Foreground = foreground,
-                                });
+                                result = new QuickInfoItem(
+                                  applicableToSpan,
+                                  new ContainerElement(
+                                      ContainerElementStyle.Stacked,
+                                      new ContainerElement(
+                                          ContainerElementStyle.Wrapped,
+                                          new ImageElement(Cube_),
+                                          new ClassifiedTextElement(
+                                              new ClassifiedTextRun(PredefinedClassificationTypeNames.Text, "Label "),
+                                              new ClassifiedTextRun(PredefinedClassificationTypeNames.Keyword, full_Qualified_Label),
+                                              new ClassifiedTextRun(PredefinedClassificationTypeNames.Text, full_Descr)))));
                             }
                             break;
                         }
@@ -305,33 +411,20 @@ namespace AsmDude.QuickInfo
                                 ? value + "d = " + value.ToString("X", AsmDudeToolsStatic.CultureUI) + "h = " + AsmSourceTools.ToStringBin(value, nBits) + "b"
                                 : keyword;
 
-
-                            if (false) // experiment to get text selectable
-                            {
-                                TextBoxWindow myWindow = new TextBoxWindow();
-                                myWindow.MouseRightButtonUp += this.MyWindow_MouseRightButtonUp;
-                                myWindow.MyContent.Text = "Constant X: " + constantStr;
-                                myWindow.MyContent.Foreground = foreground;
-                                myWindow.MyContent.MouseRightButtonUp += this.MyContent_MouseRightButtonUp;
-                                quickInfoContent.Add(myWindow);
-                            }
-                            else
-                            {
-                                description = new SelectableTextBlock();
-                                description.Inlines.Add(Make_Run1("Constant ", foreground));
-                                description.Inlines.Add(Make_Run2(constantStr, new SolidColorBrush(AsmDudeToolsStatic.ConvertColor(Settings.Default.SyntaxHighlighting_Constant))));
-                            }
-                            return new QuickInfoItem(applicableToSpan,
-                                new ContainerElement(ContainerElementStyle.Stacked,
-                                    new ClassifiedTextElement(
-                                        new ClassifiedTextRun(PredefinedClassificationTypeNames.SymbolDefinition, constantStr))));
+                            result = new QuickInfoItem(
+                                 applicableToSpan,
+                                 new ContainerElement(
+                                     ContainerElementStyle.Stacked,
+                                     new ContainerElement(
+                                         ContainerElementStyle.Wrapped,
+                                         new ImageElement(Cube_),
+                                         new ClassifiedTextElement(
+                                             new ClassifiedTextRun(PredefinedClassificationTypeNames.Text, "Constant "),
+                                             new ClassifiedTextRun(PredefinedClassificationTypeNames.Keyword, constantStr)))));
+                            break;
                         }
                     case AsmTokenType.UserDefined1:
                         {
-                            description = new TextBlock();
-                            description.Inlines.Add(Make_Run1("User defined 1: ", foreground));
-                            description.Inlines.Add(Make_Run2(keyword, new SolidColorBrush(AsmDudeToolsStatic.ConvertColor(Settings.Default.SyntaxHighlighting_Userdefined1))));
-
                             string descr = this.asmDudeTools_.Get_Description(keyword_upcase);
                             if (descr.Length > 0)
                             {
@@ -339,20 +432,22 @@ namespace AsmDude.QuickInfo
                                 {
                                     descr = "\n" + descr;
                                 }
-
-                                description.Inlines.Add(new Run(AsmSourceTools.Linewrap(": " + descr, AsmDudePackage.MaxNumberOfCharsInToolTips))
-                                {
-                                    Foreground = foreground,
-                                });
+                                string full_Descr = AsmSourceTools.Linewrap(": " + descr, AsmDudePackage.MaxNumberOfCharsInToolTips);
+                                result = new QuickInfoItem(
+                                     applicableToSpan,
+                                     new ContainerElement(
+                                         ContainerElementStyle.Stacked,
+                                         new ContainerElement(
+                                             ContainerElementStyle.Wrapped,
+                                             new ImageElement(Cube_),
+                                             new ClassifiedTextElement(
+                                                 new ClassifiedTextRun(PredefinedClassificationTypeNames.Text, "User defined 1: "),
+                                                 new ClassifiedTextRun(PredefinedClassificationTypeNames.Keyword, keyword)))));
                             }
                             break;
                         }
                     case AsmTokenType.UserDefined2:
                         {
-                            description = new TextBlock();
-                            description.Inlines.Add(Make_Run1("User defined 2: ", foreground));
-                            description.Inlines.Add(Make_Run2(keyword, new SolidColorBrush(AsmDudeToolsStatic.ConvertColor(Settings.Default.SyntaxHighlighting_Userdefined2))));
-
                             string descr = this.asmDudeTools_.Get_Description(keyword_upcase);
                             if (descr.Length > 0)
                             {
@@ -360,20 +455,22 @@ namespace AsmDude.QuickInfo
                                 {
                                     descr = "\n" + descr;
                                 }
-
-                                description.Inlines.Add(new Run(AsmSourceTools.Linewrap(": " + descr, AsmDudePackage.MaxNumberOfCharsInToolTips))
-                                {
-                                    Foreground = foreground,
-                                });
+                                string full_Descr = AsmSourceTools.Linewrap(": " + descr, AsmDudePackage.MaxNumberOfCharsInToolTips);
+                                result = new QuickInfoItem(
+                                     applicableToSpan,
+                                     new ContainerElement(
+                                         ContainerElementStyle.Stacked,
+                                         new ContainerElement(
+                                             ContainerElementStyle.Wrapped,
+                                             new ImageElement(Cube_),
+                                             new ClassifiedTextElement(
+                                                 new ClassifiedTextRun(PredefinedClassificationTypeNames.Text, "User defined 2: "),
+                                                 new ClassifiedTextRun(PredefinedClassificationTypeNames.Keyword, keyword)))));
                             }
                             break;
                         }
                     case AsmTokenType.UserDefined3:
                         {
-                            description = new TextBlock();
-                            description.Inlines.Add(Make_Run1("User defined 3: ", foreground));
-                            description.Inlines.Add(Make_Run2(keyword, new SolidColorBrush(AsmDudeToolsStatic.ConvertColor(Settings.Default.SyntaxHighlighting_Userdefined3))));
-
                             string descr = this.asmDudeTools_.Get_Description(keyword_upcase);
                             if (descr.Length > 0)
                             {
@@ -381,11 +478,17 @@ namespace AsmDude.QuickInfo
                                 {
                                     descr = "\n" + descr;
                                 }
-
-                                description.Inlines.Add(new Run(AsmSourceTools.Linewrap(": " + descr, AsmDudePackage.MaxNumberOfCharsInToolTips))
-                                {
-                                    Foreground = foreground,
-                                });
+                                string full_Descr = AsmSourceTools.Linewrap(": " + descr, AsmDudePackage.MaxNumberOfCharsInToolTips);
+                                result = new QuickInfoItem(
+                                     applicableToSpan,
+                                     new ContainerElement(
+                                         ContainerElementStyle.Stacked,
+                                         new ContainerElement(
+                                             ContainerElementStyle.Wrapped,
+                                             new ImageElement(Cube_),
+                                             new ClassifiedTextElement(
+                                                 new ClassifiedTextRun(PredefinedClassificationTypeNames.Text, "User defined 3: "),
+                                                 new ClassifiedTextRun(PredefinedClassificationTypeNames.Keyword, keyword)))));
                             }
                             break;
                         }
@@ -406,11 +509,7 @@ namespace AsmDude.QuickInfo
             //AsmDudeToolsStatic.Output_INFO("AsmQuickInfoSource:AugmentQuickInfoSession: applicableToSpan=\"" + applicableToSpan + "\"; quickInfoContent,Count=" + quickInfoContent.Count);
             AsmDudeToolsStatic.Print_Speed_Warning(time1, "QuickInfo");
 
-
-            return new QuickInfoItem(applicableToSpan, 
-                new ContainerElement(ContainerElementStyle.Stacked, 
-                    new ClassifiedTextElement(
-                        new ClassifiedTextRun(PredefinedClassificationTypeNames.Keyword, "MESSAGE TO EDIT: "))));
+            return result;
         }
 
 

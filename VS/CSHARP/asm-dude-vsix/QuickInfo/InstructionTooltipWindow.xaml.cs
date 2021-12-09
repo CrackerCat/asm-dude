@@ -44,7 +44,7 @@ namespace AsmDude.QuickInfo
         internal AsmQuickInfoController Owner { get; set; }
 
         //internal IQuickInfoSession Session { get; set; } //XYZZY OLD
-        internal IAsyncQuickInfoSession Session { get; set; } //XYZZY NEW        
+        internal IAsyncQuickInfoSession Session { get; set; } //XYZZY NEW
 
         public InstructionTooltipWindow(Brush foreground)
         {
