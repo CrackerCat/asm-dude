@@ -30,12 +30,14 @@ namespace AsmDude
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Text;
     using Microsoft.VisualStudio.Text.Editor;
+    using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+
 
     internal sealed class CodeCompletionCommandFilter : IOleCommandTarget
     {
-        private ICompletionSession currentSession_;
+        private IAsyncCompletionSession currentSession_;
 
-        public CodeCompletionCommandFilter(IWpfTextView textView, ICompletionBroker broker)
+        public CodeCompletionCommandFilter(IWpfTextView textView, IAsyncCompletionBroker broker)
         {
             this.currentSession_ = null;
             this.TextView = textView ?? throw new ArgumentNullException(nameof(textView));
@@ -45,7 +47,7 @@ namespace AsmDude
 
         public IWpfTextView TextView { get; private set; }
 
-        public ICompletionBroker Broker { get; private set; }
+        public IAsyncCompletionBroker Broker { get; private set; }
 
         public IOleCommandTarget NextCommandHandler { get; set; }
 
@@ -92,6 +94,7 @@ namespace AsmDude
                 char.IsPunctuation(typedChar))
             {
                 //check for a selection
+                /*
                 if ((this.currentSession_ != null) && !this.currentSession_.IsDismissed)
                 {
                     //if the selection is fully selected, commit the current session
@@ -111,6 +114,7 @@ namespace AsmDude
                         this.currentSession_.Dismiss();
                     }
                 }
+                */
             }
             //pass along the command so the char is added to the buffer
             int retVal = this.NextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
@@ -123,13 +127,13 @@ namespace AsmDude
                     {
                         if (this.currentSession_ != null)
                         {
-                            this.currentSession_.Filter();
+                            //this.currentSession_.Filter();
                         }
                     }
                 }
                 else
                 { //the completion session is already active, so just filter
-                    this.currentSession_.Filter();
+                   // this.currentSession_.Filter();
                 }
                 handled = true;
             }
@@ -138,7 +142,7 @@ namespace AsmDude
             {
                 if (this.currentSession_ != null && !this.currentSession_.IsDismissed)
                 {
-                    this.currentSession_.Filter();
+                   // this.currentSession_.Filter();
                 }
                 handled = true;
             }
@@ -259,20 +263,26 @@ namespace AsmDude
 
             if (this.Broker.IsCompletionActive(this.TextView))
             {
-                //AsmDudeToolsStatic.Output_INFO(string.Format(AsmDudeToolsStatic.CultureUI, "{0}:StartSession. Recycling an existing auto-complete session", this.ToString()));
-                this.currentSession_ = this.Broker.GetSessions(this.TextView)[0];
+                Tools.AsmDudeToolsStatic.Output_INFO(string.Format(Tools.AsmDudeToolsStatic.CultureUI, "{0}:StartSession. Recycling an existing auto-complete session", this.ToString()));
+                this.currentSession_ = this.Broker.GetSession(this.TextView);
             }
             else
             {
-                //AsmDudeToolsStatic.Output_INFO(string.Format(AsmDudeToolsStatic.CultureUI, "{0}:StartSession. Creating a new auto-complete session", this.ToString()));
-                this.currentSession_ = this.Broker.CreateCompletionSession(this.TextView, snapshot.CreateTrackingPoint(caret, PointTrackingMode.Positive), true);
+                Tools.AsmDudeToolsStatic.Output_INFO(string.Format(Tools.AsmDudeToolsStatic.CultureUI, "{0}:StartSession. Creating a new auto-complete session", this.ToString()));
+                //this.currentSession_ = this.Broker.CreateCompletionSession(this.TextView, snapshot.CreateTrackingPoint(caret, PointTrackingMode.Positive), true);
             }
             this.currentSession_.Dismissed += (sender, args) => this.currentSession_ = null;
-            this.currentSession_.Start();
-            //AsmDudeToolsStatic.Output_INFO(string.Format(AsmDudeToolsStatic.CultureUI, "{0}:StartSession", this.ToString()));
+
+
+            //if (!this.currentSession_.IsStarted)
+            //{
+            //    this.currentSession_.Start();
+            //}
+
+            Tools.AsmDudeToolsStatic.Output_INFO(string.Format(Tools.AsmDudeToolsStatic.CultureUI, "{0}:StartSession", this.ToString()));
             return true;
         }
-
+        
         /// <summary>
         /// Complete the auto-complete
         /// </summary>
@@ -284,6 +294,7 @@ namespace AsmDude
             {
                 return false;
             }
+            /*
             if (!this.currentSession_.SelectedCompletionSet.SelectionStatus.IsSelected && !force)
             {
                 this.currentSession_.Dismiss();
@@ -294,6 +305,8 @@ namespace AsmDude
                 this.currentSession_.Commit();
                 return true;
             }
+            */
+            return true;
         }
 
         private bool Cancel()
@@ -315,9 +328,7 @@ namespace AsmDude
             {
                 return;
             }
-            // this._currentSession.SelectedCompletionSet.SelectBestMatch();
-            //this._currentSession.SelectedCompletionSet.Recalculate();
-            this.currentSession_.Filter();
+            //this.currentSession_.Filter();
         }
 
         public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)

@@ -22,30 +22,30 @@
 
 namespace AsmDude.CodeCompletion
 {
+    using System.Collections.Generic;
     using System.ComponentModel.Composition;
-    using Microsoft.VisualStudio.Editor;
-    using Microsoft.VisualStudio.Language.Intellisense;
+    using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
     using Microsoft.VisualStudio.Text.Editor;
-    using Microsoft.VisualStudio.TextManager.Interop;
     using Microsoft.VisualStudio.Utilities;
 
-    [Export(typeof(IVsTextViewCreationListener))]
+    [Export(typeof(IAsyncCompletionCommitManagerProvider))]
     [ContentType(AsmDudePackage.AsmDudeContentType)]
-    [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal sealed class VsTextViewCreationListener : IVsTextViewCreationListener
+    [Name("asmCompletionCommitManagerProvider")]
+    [TextViewRole(PredefinedTextViewRoles.Document)]
+    internal class CodeCompletionCommitManagerProvider : IAsyncCompletionCommitManagerProvider
     {
-        [Import]
-        private readonly IVsEditorAdaptersFactoryService adaptersFactory_ = null;
+        private IDictionary<ITextView, IAsyncCompletionCommitManager> cache = new Dictionary<ITextView, IAsyncCompletionCommitManager>();
 
-        [Import]
-        private readonly ICompletionBroker completionBroker_ = null;
-
-        public void VsTextViewCreated(IVsTextView textViewAdapter)
+        public IAsyncCompletionCommitManager GetOrCreate(ITextView textView)
         {
-            IWpfTextView view = this.adaptersFactory_.GetWpfTextView(textViewAdapter);
-            CodeCompletionCommandFilter filter = new CodeCompletionCommandFilter(view, this.completionBroker_);
-            textViewAdapter.AddCommandFilter(filter, out Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget next);
-            filter.NextCommandHandler = next;
+            if (this.cache.TryGetValue(textView, out var itemSource))
+            {
+                return itemSource;
+            }
+            var manager = new CodeCompletionCommitManager();
+            textView.Closed += (o, e) => this.cache.Remove(textView); // clean up memory as files are closed
+            this.cache.Add(textView, manager);
+            return manager;
         }
     }
 }

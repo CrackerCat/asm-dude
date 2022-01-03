@@ -215,6 +215,12 @@
     <Compile Include="AsmDudePackage.cs" />
     <Compile Include="ClearMefCache\ClearMefCache.cs" />
     <Compile Include="ClearMefCache\ComponentModelExtensions.cs" />
+    <Compile Include="CodeCompletion3\CodeCompletionCommandFilter.cs" />
+    <Compile Include="CodeCompletion3\CodeCompletionPresenter.cs" />
+    <Compile Include="CodeCompletion3\CodeCompletionPresenterProvider.cs" />
+    <Compile Include="CodeCompletion3\CodeCompletionSource.cs" />
+    <Compile Include="CodeCompletion3\CodeCompletionSourceProvider.cs" />
+    <Compile Include="CodeCompletion3\VsTextViewCreationListener.cs" />
     <Compile Include="QuickInfo\ButtonInfo.cs" />
     <Compile Include="QuickInfo\InstructionTooltipWindow.xaml.cs">
       <DependentUpon>InstructionTooltipWindow.xaml</DependentUpon>
@@ -234,10 +240,6 @@
     <Compile Include="Tools\AsmSimulator.cs" />
     <Compile Include="BraceMatching\BraceMatchingTagger.cs" />
     <Compile Include="BraceMatching\BraceMatchingTaggerProvider.cs" />
-    <Compile Include="CodeCompletion\CodeCompletionCommandFilter.cs" />
-    <Compile Include="CodeCompletion\CodeCompletionSource.cs" />
-    <Compile Include="CodeCompletion\CodeCompletionSourceProvider.cs" />
-    <Compile Include="CodeCompletion\VsTextViewCreationListener.cs" />
     <Compile Include="CodeFolding\CodeFoldingTagger.cs" />
     <Compile Include="CodeFolding\CodeFoldingTaggerProvider.cs" />
     <Compile Include="Tools\AsmMessageEnum.cs" />
@@ -428,6 +430,9 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="CodeCompletion\" />
   </ItemGroup>
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>

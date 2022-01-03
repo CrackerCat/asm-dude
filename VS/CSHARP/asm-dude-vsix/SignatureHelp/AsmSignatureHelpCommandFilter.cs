@@ -114,6 +114,7 @@ namespace AsmDude.SignatureHelp
             catch (Exception e)
             {
                 AsmDudeToolsStatic.Output_ERROR(string.Format(AsmDudeToolsStatic.CultureUI, "{0}:Exec; e={1}", this.ToString(), e.ToString()));
+                return 0;
             }
             return this.nextCommandHandler_.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
         }

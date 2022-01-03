@@ -22,21 +22,26 @@
 
 namespace AsmDude
 {
+    using System.Collections.Generic;
     using System.ComponentModel.Composition;
     using System.Diagnostics.Contracts;
     using AsmDude.Tools;
-    using Microsoft.VisualStudio.Language.Intellisense;
+    using AsyncCompletionSample.JsonElementCompletion;
+    using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
     using Microsoft.VisualStudio.Text;
     using Microsoft.VisualStudio.Text.Editor;
+    using Microsoft.VisualStudio.Text.Operations;
     using Microsoft.VisualStudio.Text.Tagging;
     using Microsoft.VisualStudio.Utilities;
 
-    [Export(typeof(ICompletionSourceProvider))]
+    [Export(typeof(IAsyncCompletionSourceProvider))]
     [ContentType(AsmDudePackage.AsmDudeContentType)]
     [Name("asmCompletion")]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    public sealed class CodeCompletionSourceProvider : ICompletionSourceProvider
+    internal sealed class CodeCompletionSourceProvider : IAsyncCompletionSourceProvider
     {
+        private IDictionary<ITextView, IAsyncCompletionSource> cache = new Dictionary<ITextView, IAsyncCompletionSource>();
+
         [Import]
         private readonly IBufferTagAggregatorFactoryService aggregatorFactory_ = null;
 
@@ -46,16 +51,31 @@ namespace AsmDude
         [Import]
         private readonly IContentTypeRegistryService contentService_ = null;
 
-        public ICompletionSource TryCreateCompletionSource(ITextBuffer buffer)
+        [Import]
+        private ElementCatalog Catalog;
+
+        [Import]
+        private ITextStructureNavigatorSelectorService StructureNavigatorSelector;
+
+        public IAsyncCompletionSource GetOrCreate(ITextView textView)
         {
-            Contract.Requires(buffer != null);
-            CodeCompletionSource sc()
+            Contract.Requires(textView != null);
+            //CodeCompletionSource sc()
+            //{
+            //    LabelGraph labelGraph = AsmDudeToolsStatic.GetOrCreate_Label_Graph(textView.TextBuffer, this.aggregatorFactory_, this.docFactory_, this.contentService_);
+            //    AsmSimulator asmSimulator = AsmSimulator.GetOrCreate_AsmSimulator(textView.TextBuffer, this.aggregatorFactory_);
+            //    return new CodeCompletionSource(textView.TextBuffer, labelGraph, asmSimulator);
+            //}
+            //return textView.Properties.GetOrCreateSingletonProperty(sc);
+
+            if (this.cache.TryGetValue(textView, out var itemSource))
             {
-                LabelGraph labelGraph = AsmDudeToolsStatic.GetOrCreate_Label_Graph(buffer, this.aggregatorFactory_, this.docFactory_, this.contentService_);
-                AsmSimulator asmSimulator = AsmSimulator.GetOrCreate_AsmSimulator(buffer, this.aggregatorFactory_);
-                return new CodeCompletionSource(buffer, labelGraph, asmSimulator);
+                return itemSource;
             }
-            return buffer.Properties.GetOrCreateSingletonProperty(sc);
+            var source = new CodeCompletionSource(this.Catalog, this.StructureNavigatorSelector); // opportunity to pass in MEF parts
+            textView.Closed += (o, e) => this.cache.Remove(textView); // clean up memory as files are closed
+            this.cache.Add(textView, source);
+            return source;
         }
     }
 }
